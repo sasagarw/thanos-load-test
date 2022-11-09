@@ -35,8 +35,8 @@ func main() {
 
 func makeHttpCall(endpoint, port, namespace string) {
 	metrics := []string{"namespace_app_pod_cpu_utilization", "namespace_pod_memory_utilization", "namespace_pod_cpu_utilization", "namespace_pod_http_server_requests_2xx", "namespace_app_pod_count"}
-	start := "1667686080"
-	end := "1667815680"
+	start := getEnv("START_TIME", "1667686080")
+	end := getEnv("END_TIME", "1667815680")
 	for _, metric := range metrics {
 		url := fmt.Sprintf("http://%s:%s/api/v1/query_range?query=%s&namespace=%s&start=%s&end=%s&step=518", endpoint, port, metric, namespace, start, end)
 		callEndpoint(url)
