@@ -44,9 +44,19 @@ func runLoadTest() {
 
 func makeHttpCall(wg *sync.WaitGroup, endpoint, port, namespace string) {
 	defer wg.Done()
-	metrics := []string{"namespace_app_pod_cpu_utilization", "namespace_pod_memory_utilization", "namespace_pod_cpu_utilization", "namespace_pod_http_server_requests_2xx", "namespace_app_pod_count"}
-	start := getEnv("START_TIME", "1668272100")
-	end := getEnv("END_TIME", "1668401700")
+	metrics := []string{
+		"namespace_app_pod_cpu_utilization",
+		"namespace_pod_memory_utilization",
+		"namespace_pod_cpu_utilization",
+		"namespace_pod_http_server_requests_2xx",
+		"namespace_app_pod_http_server_requests_2xx",
+		"namespace_app_pod_count",
+		"namespace_app_pod_http_server_requests_count",
+		"namespace_app_pod_jvm_gc_pause_seconds_avg",
+		"namespace_pod_go_goroutines",
+		"namespace_pod_go_gc_duration_seconds_rate"}
+	start := getEnv("START_TIME", "1668286200")
+	end := getEnv("END_TIME", "1668415800")
 	for _, metric := range metrics {
 		url := fmt.Sprintf("http://%s:%s/api/v1/query_range?query=%s&namespace=%s&start=%s&end=%s&step=518", endpoint, port, metric, namespace, start, end)
 		callEndpoint(url)
