@@ -7,11 +7,19 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 )
 
 func main() {
 	log.Println("Starting go application ...")
+	for {
+		runLoadTest()
+		time.Sleep(10 * time.Minute)
+	}
+}
+
+func runLoadTest() {
 	for i := 0; i < 2; i++ {
 		for j := 0; j < 60; j++ {
 			log.Println("Printing ... ", j)
@@ -23,20 +31,22 @@ func main() {
 	port := getEnv("PORT", "9090")
 	noOfRoutines := getEnv("GOROUTINES", "5")
 	noOfRoutinesInt, _ := strconv.Atoi(noOfRoutines)
+
+	wg := new(sync.WaitGroup)
+	wg.Add(noOfRoutinesInt)
+
 	for i := 0; i < noOfRoutinesInt; i++ {
-		go makeHttpCall(endpoint, port, namespaces[i])
+		go makeHttpCall(wg, endpoint, port, namespaces[i])
 		time.Sleep(time.Second)
 	}
-	for {
-		log.Println("Done ...")
-		time.Sleep(5 * time.Second)
-	}
+	wg.Wait()
 }
 
-func makeHttpCall(endpoint, port, namespace string) {
+func makeHttpCall(wg *sync.WaitGroup, endpoint, port, namespace string) {
+	defer wg.Done()
 	metrics := []string{"namespace_app_pod_cpu_utilization", "namespace_pod_memory_utilization", "namespace_pod_cpu_utilization", "namespace_pod_http_server_requests_2xx", "namespace_app_pod_count"}
-	start := getEnv("START_TIME", "1667686080")
-	end := getEnv("END_TIME", "1667815680")
+	start := getEnv("START_TIME", "1668272100")
+	end := getEnv("END_TIME", "1668401700")
 	for _, metric := range metrics {
 		url := fmt.Sprintf("http://%s:%s/api/v1/query_range?query=%s&namespace=%s&start=%s&end=%s&step=518", endpoint, port, metric, namespace, start, end)
 		callEndpoint(url)
